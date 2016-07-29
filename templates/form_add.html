@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>녹화 장치 추가</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+<div id="container">
+    <div class="pagetitle">
+        <h1>녹화 장치 추가</h1>
+    </div>
+    <div id="main">
+        <form method="post" action="{{ url_for('add') }}">
+            <label for="root_dir">저장 경로 : </label>
+            <input type="text" name="root_dir" value='/home/pi/opt/video'><br/>
+            <label for="camera_name">카메라 이름 : </label>
+            <input type="text" name="camera_name" value='cam'><br/>
+            <label for="stream_url">RTSP 주소 : </label>
+            <input type="text" name="stream_url" value='rtsp://'><br/>
+            <input type="submit">
+        </form>
+    </div>
+</div>
+</body>
+</html>

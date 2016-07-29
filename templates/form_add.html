@@ -11,13 +11,18 @@
     </div>
     <div id="main">
         <form method="post" action="{{ url_for('add') }}">
+            {% if error %}
+            <p class=error><strong>Error:</strong> {{ error }} </p>
+            {% endif %}
             <label for="root_dir">저장 경로 : </label>
-            <input type="text" name="root_dir" value='/home/pi/opt/video'><br/>
+            <input type="text" name="root_dir" value="/home/pi/opt/video"><br/>
             <label for="camera_name">카메라 이름 : </label>
-            <input type="text" name="camera_name" value='cam'><br/>
-            <label for="stream_url">RTSP 주소 : </label>
-            <input type="text" name="stream_url" value='rtsp://'><br/>
-            <input type="submit">
+            <input type="text" name="camera_name" value="cam"><br/>
+            <label for="origin_url">원본 RTSP 주소 : </label>
+            <input type="text" name="origin_url" value="rtsp://localhost:8554/unicast"><br/>
+            <label for="owner">사용자 : </label>
+            <input type="text" name="owner" value="{{ owner }}" readonly><br/>
+            <input type="submit" value="추가">
         </form>
     </div>
 </div>

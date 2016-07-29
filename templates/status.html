@@ -1,10 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
+    <title>PiNVR 상태</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
 </head>
 <body>
-status<br>
-{{ username }}
+<div id="container">
+    <div class="pagetitle">
+        <h1>PiNVR 상태</h1>
+    </div>
+    <div id="main">
+        {% if camera_list|length > 0 %}
+        <table style="width:100%">
+            <tr>
+                <th>번호</th>
+                <th>카메라 이름</th>
+                <th>RTSP 접속 주소</th>
+                <th>저장 경로</th>
+                <th>원본 주소</th>
+            </tr>
+            {% for camera in camera_list %}
+            <tr>
+                <td align="center">{{ camera.number }}</td>
+                <td align="center">{{ camera.camera_name }}</td>
+                <td align="center">{{ camera.stream_url }}</td>
+                <td align="center">{{ camera.root_dir }}</td>
+                <td align="center">{{ camera.origin_url }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>카메라 없음</p>
+        {% endif %}
+    </div>
+</div>
 </body>
 </html>

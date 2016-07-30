@@ -2,18 +2,22 @@
 import os
 import socket
 import sqlite3
+import psutil
 from threading import Thread
 
 import subprocess
+from time import sleep
+
 from flask import Flask, render_template, session, redirect, request, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 
 host_ip_address = ''
 host_domain = ''
 
-nvr_thread_list = []
+nvs_thread_list = []
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
+
 
 # 유저 클래스
 class User(object):
@@ -143,19 +147,19 @@ def update_db_camera(camera_info):
 
 def run_camera(root_dir, camera_name, origin_url, server_port, owner):
     if root_dir and camera_name and origin_url and server_port is not -1:
-        nvr_thread = NVSThread(root_dir=root_dir, camera_name=camera_name, origin_url=origin_url,
+        nvs_thread = NVSThread(root_dir=root_dir, camera_name=camera_name, origin_url=origin_url,
                                server_port=server_port)
 
-        nvr_thread_list.append(nvr_thread)
+        nvs_thread_list.append(nvs_thread)
 
-        nvr_thread.start()
+        nvs_thread.start()
 
         return True
     else:
         return False
 
 
-# NVR 스레드 클래스
+# NVS 스레드 클래스
 class NVSThread(Thread):
     def __init__(self, root_dir='', camera_name='', origin_url='', server_port=-1):
         self.root_dir = root_dir
@@ -174,9 +178,7 @@ class NVSThread(Thread):
         cmd = '/home/pi/opt/PiNVR/pinvr' + params
         cmd_args = cmd.split()
 
-        self.runnable = subprocess.Popen(cmd_args, bufsize=1024, shell=False)
-
-        # self._runnable = envoy.run('/home/pi/opt/PiNVR/pinvr' + cmd_args)
+        self.runnable = subprocess.Popen(cmd_args, bufsize=1024)
 
         # call(cmd_args)
 
@@ -213,6 +215,27 @@ class NVSThread(Thread):
             print 'runnable is None. Maybe subprocess is dead.'
         else:
             self.runnable.kill()
+            outs, errs = self.runnable.communicate()
+
+            print 'nvs killed : ' + str(self.runnable.pid), outs, errs
+
+
+# NVS 감시 스레드
+class NVSWatchThread(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+
+    def run(self):
+        while True:
+            sleep(3)
+
+            pids = psutil.pids()
+
+            for thread in nvs_thread_list:
+                if thread.runnable.pid in pids:
+                    p = psutil.Process(thread.runnable.pid)
+                else:
+                    nvs_thread_list.remove(thread)
 
 
 app = Flask(__name__)
@@ -261,6 +284,16 @@ def status():
 @app.route('/logout')
 def logout():
     session.pop('username', None)
+
+    return redirect('/')
+
+
+@app.route('/asdf')
+def asdf():
+    global nvs_thread_list
+
+    for thread in nvs_thread_list:
+        thread.cmd_kill_nvs()
 
     return redirect('/')
 
@@ -332,15 +365,11 @@ def modify():
             origin_url = request.form['origin_url']
             server_port = request.form['server_port']
 
-            print 'modify'
-
             # process 갱신
-            for item in nvr_thread_list:
+            for item in nvs_thread_list:
                 if str(item.server_port) == server_port:
                     _camera_info = CameraInfo(camera_name, root_dir, server_port, origin_url, owner)
                     update_db_camera(_camera_info)
-
-                    print _camera_info
 
                     item.cmd_change_camera_name(camera_name)
                     item.cmd_change_root_dir(root_dir)
@@ -400,6 +429,9 @@ if __name__ == '__main__':
 
     for camera in camera_list:
         run_camera(camera.root_dir, camera.camera_name, camera.origin_url, camera.server_port, camera.owner)
+
+    nvs_watcher = NVSWatchThread()
+    nvs_watcher.start()
 
     # flask 실행
     app.run(host='0.0.0.0', port='1024')

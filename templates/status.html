@@ -10,22 +10,35 @@
         <h1>PiNVR 상태</h1>
     </div>
     <div id="main">
+        {% if error %}
+        <p class=error><strong>Error:</strong> {{ error }} </p>
+        {% endif %}
         {% if camera_list|length > 0 %}
         <table style="width:100%">
             <tr>
-                <th>번호</th>
                 <th>카메라 이름</th>
                 <th>RTSP 접속 주소</th>
                 <th>저장 경로</th>
                 <th>원본 주소</th>
+                <th>녹화 상태</th>
+                <th>분배 상태</th>
+                <th>설정</th>
             </tr>
             {% for camera in camera_list %}
             <tr>
-                <td align="center">{{ camera.number }}</td>
                 <td align="center">{{ camera.camera_name }}</td>
                 <td align="center">{{ camera.stream_url }}</td>
                 <td align="center">{{ camera.root_dir }}</td>
                 <td align="center">{{ camera.origin_url }}</td>
+                <td align="center">{{ camera.root_dir }}</td>
+                <td align="center">{{ camera.origin_url }}</td>
+                <td align="center">
+                    <form method="post" action="{{ url_for('modify') }}">
+                        <input type="hidden" name="type" value="create_form">
+                        <input type="hidden" name="server_port" value="{{ camera.server_port }}">
+                        <input type="submit" value="설정 변경">
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </table>

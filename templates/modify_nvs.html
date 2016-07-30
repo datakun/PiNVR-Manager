@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>녹화 장치 설정</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+<div id="container">
+    <div class="pagetitle">
+        <h1>녹화 장치 설정</h1>
+    </div>
+    <div id="main">
+        <form method="post" action="{{ url_for('modify') }}">
+            {% if error %}
+            <p class=error><strong>Error:</strong> {{ error }} </p>
+            {% endif %}
+            <label for="root_dir">저장 경로 : </label>
+            <input type="text" name="root_dir" value="{{ camera.root_dir }}"><br/>
+            <label for="camera_name">카메라 이름 : </label>
+            <input type="text" name="camera_name" value="{{ camera.camera_name }}"><br/>
+            <label for="origin_url">원본 RTSP 주소 : </label>
+            <input type="text" name="origin_url" value="{{ camera.origin_url }}"><br/>
+            <label for="owner">사용자 : </label>
+            <input type="text" name="owner" value="{{ camera.owner }}" readonly><br/>
+            <input type="hidden" name="server_port" value="{{ camera.server_port }}"><br/>
+            <input type="hidden" name="type" value="modify_nvs"><br/>
+            <input type="submit" value="저장">
+        </form>
+    </div>
+</div>
+</body>
+</html>

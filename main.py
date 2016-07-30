@@ -145,6 +145,15 @@ def update_db_camera(camera_info):
     disconnect_db(_db)
 
 
+def delete_db_camera(server_port):
+    _db = connect_db()
+    _cursor = _db.cursor()
+    _cursor.execute('delete from camera_list where server_port=?', [server_port])
+
+    _cursor.close()
+    disconnect_db(_db)
+
+
 def run_camera(root_dir, camera_name, origin_url, server_port, owner):
     if root_dir and camera_name and origin_url and server_port is not -1:
         nvs_thread = NVSThread(root_dir=root_dir, camera_name=camera_name, origin_url=origin_url,

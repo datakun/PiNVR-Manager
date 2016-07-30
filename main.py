@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import socket
 import sqlite3
 from threading import Thread
@@ -12,6 +13,7 @@ host_domain = ''
 
 nvr_thread_list = []
 
+current_directory = os.path.dirname(os.path.abspath(__file__))
 
 # 유저 클래스
 class User(object):
@@ -49,7 +51,7 @@ def get_current_username():
 
 
 def connect_db():
-    return sqlite3.connect('./pinvr.db')
+    return sqlite3.connect(current_directory + '/pinvr.db')
 
 
 def disconnect_db(_db):
@@ -168,6 +170,7 @@ class NVSThread(Thread):
         params = ' -s ' + self.root_dir + ' -n ' + self.camera_name + ' -O ' \
                  + str(self.server_port) + ' -r ' + self.origin_url + ' M'
 
+        # 변수로 추출해야 함
         cmd = '/home/pi/opt/PiNVR/pinvr' + params
         cmd_args = cmd.split()
 

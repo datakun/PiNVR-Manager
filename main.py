@@ -202,7 +202,7 @@ class NVSThread(Thread):
 
     def run(self):
         params = ' -s ' + self.root_dir + ' -n ' + self.camera_name + ' -O ' \
-                 + str(self.server_port) + ' -r ' + self.origin_url + ' M'
+                 + str(self.server_port) + ' -r ' + self.origin_url
 
         # 변수로 추출해야 함
         cmd = '/home/pi/opt/PiNVR/pinvr' + params

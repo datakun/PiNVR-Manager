@@ -405,7 +405,7 @@ def add():
 
                 update_process_status()
 
-                print 'nvs added: ' + camera_name, owner
+                print 'nvs added: ' + str(server_port), owner
     else:
         return redirect('/')
 
@@ -477,7 +477,7 @@ def enable():
 
         update_process_status()
 
-        print 'nvs enabled: ' + _camera.camera_name, owner
+        print 'nvs enabled: ' + str(_camera.server_port), owner
     else:
         return redirect('/')
 
@@ -508,7 +508,7 @@ def disable():
 
                 break
 
-        print 'nvs disabled: ' + item.camera_name, owner
+        print 'nvs disabled: ' + server_port, owner
     else:
         return redirect('/')
 
@@ -539,7 +539,7 @@ def delete():
 
                 break
 
-        print 'nvs deleted: ' + item.camera_name, owner
+        print 'nvs deleted: ' + server_port, owner
     else:
         return redirect('/')
 

@@ -436,12 +436,13 @@ def modify():
             origin_url = request.form['origin_url']
             server_port = request.form['server_port']
 
+            update_db_camera(camera_name, root_dir, origin_url, server_port)
+
+            nvs_list = get_db_camera_list(owner)
+
             # process 갱신
             for item in nvs_thread_list:
                 if str(item.server_port) == server_port:
-                    update_db_camera(camera_name, root_dir, origin_url, server_port)
-
-                    nvs_list = get_db_camera_list(owner)
 
                     update_process_status()
 
@@ -494,20 +495,20 @@ def disable():
     if owner is not None:
         server_port = request.form['server_port']
 
+        db_enable_camera(server_port, False)
+
+        nvs_list = get_db_camera_list(owner)
+
         # process 갱신
         for item in nvs_thread_list:
             if str(item.server_port) == server_port:
                 item.cmd_kill_nvs()
 
-                db_enable_camera(server_port, False)
-
-                nvs_list = get_db_camera_list(owner)
-
                 update_process_status()
 
-                print 'nvs disabled: ' + item.camera_name, owner
-
                 break
+
+        print 'nvs disabled: ' + item.camera_name, owner
     else:
         return redirect('/')
 
@@ -525,20 +526,20 @@ def delete():
     if owner is not None:
         server_port = request.form['server_port']
 
+        delete_db_camera(server_port)
+
+        nvs_list = get_db_camera_list(owner)
+
         # process 갱신
         for item in nvs_thread_list:
             if str(item.server_port) == server_port:
                 item.cmd_kill_nvs()
 
-                delete_db_camera(item.server_port)
-
-                nvs_list = get_db_camera_list(owner)
-
                 update_process_status()
 
-                print 'nvs deleted: ' + item.camera_name, owner
-
                 break
+
+        print 'nvs deleted: ' + item.camera_name, owner
     else:
         return redirect('/')
 

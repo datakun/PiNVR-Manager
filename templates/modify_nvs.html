@@ -1,32 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>녹화 장치 설정</title>
-    <link rel="stylesheet" type="text/css" href="/static/style.css">
+    <title>녹화 장치 추가</title>
+    <link rel="stylesheet" type="text/css" href="/static/bower_components/semantic/dist/semantic.min.css">
+    <style type="text/css">
+    .header.container {
+        margin-top: 5em;
+    }
+    </style>
+    <script src="/static/bower_components/semantic/dist/semantic.min.js"></script>
 </head>
 <body>
-<div id="container">
-    <div class="pagetitle">
-        <h1>녹화 장치 설정</h1>
+<div class="ui fixed inverted menu">
+    <div class="ui container">
+        <div href="#" class="header item">
+            PiNVR
+        </div>
     </div>
-    <div id="main">
-        <form method="post" action="{{ url_for('modify') }}">
-            {% if error %}
-            <p class=error><strong>Error:</strong> {{ error }} </p>
-            {% endif %}
-            <label for="root_dir">저장 경로 : </label>
-            <input type="text" name="root_dir" value="{{ camera.root_dir }}"><br/>
-            <label for="camera_name">카메라 이름 : </label>
-            <input type="text" name="camera_name" value="{{ camera.camera_name }}"><br/>
-            <label for="origin_url">원본 RTSP 주소 : </label>
-            <input type="text" name="origin_url" value="{{ camera.origin_url }}"><br/>
-            <label for="owner">사용자 : </label>
-            <input type="text" name="owner" value="{{ camera.owner }}" readonly><br/>
-            <input type="hidden" name="server_port" value="{{ camera.server_port }}"><br/>
-            <input type="hidden" name="type" value="modify_nvs"><br/>
-            <input type="submit" value="저장">
-        </form>
-    </div>
+</div>
+<div class="ui header container">
+    <h1>녹화 장치 추가</h1>
+</div>
+<div class="ui main container">
+    <form class="ui error form" method="post" action="{{ url_for('modify') }}">
+        <!--{% if error %}-->
+        <div class="ui error message">
+            <i class="close icon"></i>
+            <div class="header">
+                Error:
+            </div>
+            <p>
+                <!--{{ error }}-->
+            </p>
+        </div>
+        <!--{% endif %}-->
+        <div class="field">
+            <label>카메라 이름</label>
+            <input type="text" name="camera_name" placeholder="Cam">
+        </div>
+        <div class="field">
+            <label>원본 RTSP 주소</label>
+            <input type="text" name="origin_url" placeholder="rtsp://localhost:8554/unicast">
+        </div>
+        <div class="field">
+            <label>영상 저장 위치</label>
+            <input type="text" name="root_dir" placeholder="/home/pi/Videos">
+        </div>
+        <!--<div class="field">-->
+        <!--<label>스케쥴</label>-->
+        <!--&lt;!&ndash;<input type="text" name="last-name" placeholder="Last Name">&ndash;&gt;-->
+        <!--</div>-->
+        <button class="ui floated primary button" type="submit">저장</button>
+        <button class="ui floated negative button" onclick="location.href='/status'">취소</button>
+    </form>
 </div>
 </body>
 </html>

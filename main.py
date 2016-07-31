@@ -35,7 +35,7 @@ class User(object):
 
 # 카메라 클래스
 class NVSInfo(object):
-    def __init__(self, camera_name, root_dir, server_port, origin_url, owner):
+    def __init__(self, camera_name, root_dir, server_port, origin_url, owner, enabled):
         self.camera_name = camera_name
         self.server_port = server_port
         if host_domain is '':
@@ -47,6 +47,7 @@ class NVSInfo(object):
         self.root_dir = root_dir
         self.owner = owner
         self.alive = 'DEAD'
+        self.enabled = enabled
 
 
 def get_current_username():
@@ -96,7 +97,7 @@ def get_db_camera_list(owner):
     _item_list = _cursor.fetchall()
 
     for item in _item_list:
-        _camera = NVSInfo(item[1], item[2], item[3], item[4], item[5])
+        _camera = NVSInfo(item[1], item[2], item[3], item[4], item[5], item[6])
         _camera_list[item[3]] = _camera
 
     _cursor.close()
@@ -113,7 +114,7 @@ def get_db_camera(server_port):
     item = _cursor.fetchone()
 
     if item is not None:
-        _camera = NVSInfo(item[1], item[2], item[3], item[4], item[5])
+        _camera = NVSInfo(item[1], item[2], item[3], item[4], item[5], item[6])
     else:
         _camera = None
 
@@ -127,20 +128,30 @@ def insert_db_camera(camera_info):
     _db = connect_db()
     _cursor = _db.cursor()
     _cursor.execute(
-        'insert into camera_list (camera_name, root_dir, origin_url, server_port, owner) \
-         values (?, ?, ?, ?, ?)',
+        'insert into camera_list (camera_name, root_dir, origin_url, server_port, owner, enabled) \
+         values (?, ?, ?, ?, ?, ?)',
         [camera_info.camera_name, camera_info.root_dir, camera_info.origin_url, camera_info.server_port,
-         camera_info.owner])
+         camera_info.owner, camera_info.enabled])
 
     _cursor.close()
     disconnect_db(_db)
 
 
-def update_db_camera(camera_info):
+def db_enable_camera(server_port, enabled=True):
+    _db = connect_db()
+    _cursor = _db.cursor()
+    _cursor.execute('update camera_list set enabled=? where server_port=?',
+                    [enabled, server_port])
+
+    _cursor.close()
+    disconnect_db(_db)
+
+
+def update_db_camera(camera_name, root_dir, origin_url, server_port):
     _db = connect_db()
     _cursor = _db.cursor()
     _cursor.execute('update camera_list set camera_name=?, root_dir=?, origin_url=? where server_port=?',
-                    [camera_info.camera_name, camera_info.root_dir, camera_info.origin_url, camera_info.server_port])
+                    [camera_name, root_dir, origin_url, server_port])
 
     _cursor.close()
     disconnect_db(_db)
@@ -155,25 +166,33 @@ def delete_db_camera(server_port):
     disconnect_db(_db)
 
 
-def run_camera(root_dir, camera_name, origin_url, server_port, owner):
-    if root_dir and camera_name and origin_url and server_port is not -1:
-        nvs_thread = NVSThread(root_dir=root_dir, camera_name=camera_name, origin_url=origin_url,
-                               server_port=server_port)
+def run_camera(root_dir, camera_name, origin_url, server_port):
+    flag = 0
+    _thread = None
+    for thread in nvs_thread_list:
+        if thread.server_port == str(server_port):
+            _thread = thread
 
-        nvs_thread_list.append(nvs_thread)
+            break
 
-        nvs_thread.start()
+        flag += 1
 
-        return True
-    else:
-        return False
+    if _thread is not None:
+        nvs_thread_list.remove(_thread)
+
+    nvs_thread = NVSThread(root_dir=root_dir, camera_name=camera_name, origin_url=origin_url,
+                           server_port=server_port)
+
+    nvs_thread_list.append(nvs_thread)
+
+    nvs_thread.start()
 
 
 def update_process_status():
     pids = psutil.pids()
 
     for thread in nvs_thread_list:
-        if thread.pid in pids:
+        print str(thread.pid), str(thread.server_port)
             p = psutil.Process(thread.pid)
 
             if thread.server_port in nvs_list:
@@ -186,6 +205,15 @@ def update_process_status():
                 nvs_list[thread.server_port].alive = 'DEAD'
 
             nvs_thread_list.remove(thread)
+
+
+def is_process_alive(pid):
+    pids = psutil.pids()
+
+    if pid in pids:
+        return True
+    else:
+        return False
 
 
 # NVS 스레드 클래스
@@ -209,6 +237,7 @@ class NVSThread(Thread):
         cmd_args = cmd.split()
 
         self.runnable = subprocess.Popen(cmd_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        # self.runnable = subprocess.Popen(['ping', '127.0.0.1'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         self.pid = self.runnable.pid
 
         # call(cmd_args)
@@ -268,7 +297,7 @@ class NVSWatchThread(Thread):
         self.stopped = True
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 
 # set the secret key.  keep this really secret:
 app.secret_key = 'A8(kMF5$@1X !*FKEeo(]%LWX/,?RT'
@@ -310,6 +339,11 @@ def status():
     if 'username' in session:
         _camera_list = []
         for _camera in nvs_list.values():
+            if _camera.alive is 'ALIVE':
+                _camera.enabled = True
+            else:
+                _camera.enabled = False
+
             _camera_list.append(_camera)
 
     return render_template('status.html', camera_list=_camera_list)
@@ -362,19 +396,16 @@ def add():
                     break
 
             if error is None:
-                success = run_camera(root_dir, camera_name, origin_url, server_port, owner)
+                run_camera(root_dir, camera_name, origin_url, server_port)
 
-                if success is True:
-                    _camera_info = NVSInfo(camera_name, root_dir, server_port, origin_url, owner)
-                    insert_db_camera(_camera_info)
+                _camera_info = NVSInfo(camera_name, root_dir, server_port, origin_url, owner, True)
+                insert_db_camera(_camera_info)
 
-                    nvs_list = get_db_camera_list(owner)
+                nvs_list = get_db_camera_list(owner)
 
-                    update_process_status()
+                update_process_status()
 
-                    print 'nvs added: ' + camera_name, owner
-                else:
-                    error = 'Failed to add camera'
+                print 'nvs added: ' + camera_name, owner
     else:
         return redirect('/')
 
@@ -408,8 +439,7 @@ def modify():
             # process 갱신
             for item in nvs_thread_list:
                 if str(item.server_port) == server_port:
-                    _camera_info = NVSInfo(camera_name, root_dir, server_port, origin_url, owner)
-                    update_db_camera(_camera_info)
+                    update_db_camera(camera_name, root_dir, origin_url, server_port)
 
                     nvs_list = get_db_camera_list(owner)
 
@@ -420,6 +450,64 @@ def modify():
                     item.cmd_change_origin_url(origin_url)
 
                     break
+    else:
+        return redirect('/')
+
+    return redirect(url_for('status', error=error))
+
+
+@app.route('/enable', methods=['POST'])
+def enable():
+    global nvs_list, nvs_watcher
+
+    owner = get_current_username()
+
+    error = None
+
+    if owner is not None:
+        server_port = request.form['server_port']
+
+        _camera = get_db_camera(server_port)
+        run_camera(_camera.camera_name, _camera.root_dir, _camera.origin_url, _camera.server_port)
+
+        db_enable_camera(server_port, True)
+
+        nvs_list = get_db_camera_list(owner)
+
+        update_process_status()
+
+        print 'nvs enabled: ' + _camera.camera_name, owner
+    else:
+        return redirect('/')
+
+    return redirect(url_for('status', error=error))
+
+
+@app.route('/disable', methods=['POST'])
+def disable():
+    global nvs_list, nvs_watcher
+
+    owner = get_current_username()
+
+    error = None
+
+    if owner is not None:
+        server_port = request.form['server_port']
+
+        # process 갱신
+        for item in nvs_thread_list:
+            if str(item.server_port) == server_port:
+                item.cmd_kill_nvs()
+
+                db_enable_camera(server_port, False)
+
+                nvs_list = get_db_camera_list(owner)
+
+                update_process_status()
+
+                print 'nvs disabled: ' + item.camera_name, owner
+
+                break
     else:
         return redirect('/')
 
@@ -477,7 +565,7 @@ if __name__ == '__main__':
                     server_port INTEGER NOT NULL, \
                     origin_url TEXT NOT NULL, \
                     owner TEXT NOT NULL, \
-                    recording BOOL \
+                    enabled BOOL \
                     );')
 
     cursor.execute('CREATE TABLE if not exists user_list( \
@@ -501,7 +589,7 @@ if __name__ == '__main__':
     nvs_list = get_db_camera_list(admin_data.username)
 
     for nvs in nvs_list.values():
-        run_camera(nvs.root_dir, nvs.camera_name, nvs.origin_url, nvs.server_port, nvs.owner)
+        run_camera(nvs.root_dir, nvs.camera_name, nvs.origin_url, nvs.server_port)
 
     nvs_watcher = NVSWatchThread()
     nvs_watcher.start()

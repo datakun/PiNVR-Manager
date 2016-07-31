@@ -1,56 +1,147 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PiNVR 상태</title>
-    <link rel="stylesheet" type="text/css" href="/static/style.css">
+    <title>PiNVR > 상태</title>
+    <link rel="stylesheet" type="text/css" href="/static/bower_components/semantic/dist/semantic.min.css">
+    <style type="text/css">
+    .header.container {
+        margin-top: 5em;
+    }
+
+
+
+
+    </style>
+    <script src="/static/bower_components/semantic/dist/semantic.min.js"></script>
+    <script>
+        function post(path, params) {
+            // The rest of this code assumes you are not using a library.
+            // It can be made less wordy if you use one.
+            var form = document.createElement("form");
+            form.setAttribute("method", 'post');
+            form.setAttribute("action", path);
+
+            for(var key in params) {
+                if(params.hasOwnProperty(key)) {
+                    var hiddenField = document.createElement("input");
+                    hiddenField.setAttribute("type", "hidden");
+                    hiddenField.setAttribute("name", key);
+                    hiddenField.setAttribute("value", params[key]);
+
+                    form.appendChild(hiddenField);
+                 }
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+
+
+
+    </script>
 </head>
 <body>
-<div id="container">
-    <div class="pagetitle">
-        <h1>PiNVR 상태</h1>
+<div class="ui fixed inverted menu">
+    <div class="ui container">
+        <div href="#" class="header item">
+            PiNVR
+        </div>
+        <div class="right menu">
+            <div class="item">
+                <a class="ui button" onclick="location.href='/logout'">로그아웃</a>
+            </div>
+        </div>
     </div>
-    <div id="main">
-        {% if error %}
-        <p class=error><strong>Error:</strong> {{ error }} </p>
-        {% endif %}
+</div>
+<div class="ui header container">
+    <h1>PiNVR 상태</h1>
+</div>
+<div class="ui main container">
+    {% if error %}
+    <div class="ui negative message transition hidden">
+        <i class="close icon"></i>
+        <div class="header">
+            Error:
+        </div>
+        <p>
+            {{ error }}
+        </p>
+    </div>
+    {% endif %}
+    <table class="ui blue selectable table">
+        <thead class="full-width">
+        <tr>
+            <th>사용</th>
+            <th>카메라 이름</th>
+            <th>접속 주소</th>
+            <th>저장 경로</th>
+            <th>원본 주소</th>
+            <th>상태</th>
+            <th>설정</th>
+            <th>삭제</th>
+        </tr>
+        </thead>
+        <tbody>
         {% if camera_list|length > 0 %}
-        <table style="width:100%">
-            <tr>
-                <th>카메라 이름</th>
-                <th>RTSP 접속 주소</th>
-                <th>저장 경로</th>
-                <th>원본 주소</th>
-                <th>상태</th>
-                <th>설정</th>
-                <th>삭제</th>
-            </tr>
-            {% for camera in camera_list %}
-            <tr>
-                <td align="center">{{ camera.camera_name }}</td>
-                <td align="center">{{ camera.stream_url }}</td>
-                <td align="center">{{ camera.root_dir }}</td>
-                <td align="center">{{ camera.origin_url }}</td>
-                <td align="center">{{ camera.alive }}</td>
-                <td align="center">
-                    <form method="post" action="{{ url_for('modify') }}">
-                        <input type="hidden" name="type" value="create_form">
-                        <input type="hidden" name="server_port" value="{{ camera.server_port }}">
-                        <input type="submit" value="설정 변경">
-                    </form>
-                </td>
-                <td align="center">
-                    <form method="post" action="{{ url_for('delete') }}">
-                        <input type="hidden" name="server_port" value="{{ camera.server_port }}">
-                        <input type="submit" value="삭제">
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
+        {% for camera in camera_list %}
+        {% if camera.alive == 'DEAD' %}
+        <tr class="warning">
+            {% elif camera.alive == 'ZOMBIE' %}
+        <tr class="negative">
+            {% else %}
+        <tr>
+            {% endif %}
+            <td class="collapsing">
+                <div class="ui toggle checkbox">
+                    {% if camera.enabled %}
+                    <input type="checkbox" checked
+                           onclick="post('/disable', {server_port: '{{ camera.server_port }}'});">
+                    {% else %}
+                    <input type="checkbox"
+                           onclick="post('/enable', {server_port: '{{ camera.server_port }}'});">
+                    {% endif %}
+                    <label></label>
+                </div>
+            </td>
+            <td>{{ camera.camera_name }}</td>
+            <td>{{ camera.stream_url }}</td>
+            <td>{{ camera.root_dir }}</td>
+            <td>{{ camera.origin_url }}</td>
+            <td>{{ camera.alive }}</td>
+            <td>
+                <button class="ui floated small positive button"
+                        onclick="post('/modify', {server_port: '{{ camera.server_port }}', type: 'create_form'});">
+                    설정 변경
+                </button>
+            </td>
+            <td>
+                <button class="ui floated small negative button"
+                        onclick="post('/delete', {server_port: '{{ camera.server_port }}'});">
+                    삭제
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
         {% else %}
-        <p>카메라 없음</p>
+        <tr>
+            <td colspan="8" align="center">
+                <div align="center">카메라 없음</div>
+            </td>
+        </tr>
         {% endif %}
-    </div>
+        </tbody>
+        <tfoot class="full-width">
+        <tr>
+            <th></th>
+            <th colspan="7">
+                <button class="ui right floated small primary button" onclick="location.href='/add'">
+                    장치 추가
+                </button>
+            </th>
+        </tr>
+        </tfoot>
+    </table>
 </div>
 </body>
 </html>

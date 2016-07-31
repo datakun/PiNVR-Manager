@@ -1,24 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>로그인</title>
-    <link rel="stylesheet" type="text/css" href="/static/style.css">
+    <title>PiNVR</title>
+    <link rel="stylesheet" type="text/css" href="/static/bower_components/semantic/dist/semantic.min.css">
+    <style type="text/css">
+        body > .grid {
+          height: 100%;
+        }
+        .image {
+          margin-top: -100px;
+        }
+        .column {
+          max-width: 450px;
+        }
+    </style>
+    <script src="/static/bower_components/semantic/dist/semantic.min.js"></script>
+    <script>
+
+    </script>
 </head>
 <body>
-<div id="container">
-    <div class="pagetitle">
-        <h1>로그인</h1>
-    </div>
-    <div id="main">
-        <form method="post" action="/">
+<div class="ui middle aligned center aligned grid">
+    <div class="column">
+        <h2 class="ui blue header">
+            <div class="content">
+                PiNVR
+            </div>
+        </h2>
+        <form class="ui large form" method="post" action="/">
+            <div class="ui error message">
+                <i class="close icon"></i>
+                <div class="header">
+                    Error:
+                </div>
+                <p>
+                    asdf
+                    <!--{{ error }}-->
+                </p>
+            </div>
             {% if error %}
-            <p class=error><strong>Error:</strong> {{ error }} </p>
             {% endif %}
-            <label for="username">사용자 : </label>
-            <input type="text" name="username"><br/>
-            <label for="password">비밀번호 : </label>
-            <input type="password" name="password"><br/>
-            <input type="submit" value="로그인">
+            <div class="ui stacked segment">
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="user icon"></i>
+                        <input type="text" name="username" placeholder="사용자 이름">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="lock icon"></i>
+                        <input type="password" name="password" placeholder="비밀번호">
+                    </div>
+                </div>
+                <div class="two fields">
+                    <button class="ui fluid large floated primary button" type="submit">로그인</button>
+                    <button class="ui fluid large floated positive button" onclick="">비밀번호 변경</button>
+                </div>
+            </div>
         </form>
     </div>
 </div>

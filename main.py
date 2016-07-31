@@ -192,7 +192,7 @@ def update_process_status():
     pids = psutil.pids()
 
     for thread in nvs_thread_list:
-        print str(thread.pid), str(thread.server_port)
+        if thread.pid in pids:
             p = psutil.Process(thread.pid)
 
             if thread.server_port in nvs_list:

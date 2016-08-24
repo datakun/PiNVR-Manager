@@ -1,8 +1,15 @@
-.pagetitle {
-    color: #800080;
+body {
+    background-color: #DADADA;
 }
 
-table, th, td {
-    border: 1px solid black;
-    border-collapse: collapse;
+body > .grid {
+  height: 100%;
+}
+
+.column {
+  max-width: 450px;
+}
+
+.header.container {
+    margin-top: 5em;
 }

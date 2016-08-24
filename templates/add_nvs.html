@@ -3,19 +3,15 @@
 <head>
     <title>PiNVR > 녹화 장치 추가</title>
     <link rel="stylesheet" type="text/css" href="/static/bower_components/semantic/dist/semantic.min.css">
-    <style type="text/css">
-    .header.container {
-        margin-top: 5em;
-    }
-    </style>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
     <script src="/static/bower_components/semantic/dist/semantic.min.js"></script>
 </head>
 <body>
 <div class="ui fixed inverted menu">
     <div class="ui container">
-        <div href="#" class="header item">
+        <a href="#" class="header item">
             PiNVR
-        </div>
+        </a>
     </div>
 </div>
 <div class="ui header container">
@@ -23,17 +19,6 @@
 </div>
 <div class="ui main container">
     <form class="ui error form" method="post" action="{{ url_for('add') }}">
-        <!--{% if error %}-->
-        <div class="ui error message">
-            <i class="close icon"></i>
-            <div class="header">
-                Error:
-            </div>
-            <p>
-                <!--{{ error }}-->
-            </p>
-        </div>
-        <!--{% endif %}-->
         <div class="field">
             <label>카메라 이름</label>
             <input type="text" name="camera_name" placeholder="Cam">
@@ -51,7 +36,7 @@
             <!--&lt;!&ndash;<input type="text" name="last-name" placeholder="Last Name">&ndash;&gt;-->
         <!--</div>-->
         <button class="ui floated primary button" type="submit">추가</button>
-        <button class="ui floated negative button" onclick="location.href='/status'">취소</button>
+        <button class="ui floated negative button" type="button" onclick="location.href='/status'">취소</button>
     </form>
 </div>
 </body>

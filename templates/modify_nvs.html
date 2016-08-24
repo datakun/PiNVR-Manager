@@ -3,19 +3,34 @@
 <head>
     <title>녹화 장치 추가</title>
     <link rel="stylesheet" type="text/css" href="/static/bower_components/semantic/dist/semantic.min.css">
-    <style type="text/css">
-    .header.container {
-        margin-top: 5em;
-    }
-    </style>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
     <script src="/static/bower_components/semantic/dist/semantic.min.js"></script>
+    <script src="/static/js/script.js"></script>
+    <script>
+        function post(path, params) {
+            var form = document.createElement("form");
+            form.setAttribute("method", 'post');
+            form.setAttribute("action", path);
+            for(var key in params) {
+                if(params.hasOwnProperty(key)) {
+                    var hiddenField = document.createElement("input");
+                    hiddenField.setAttribute("type", "hidden");
+                    hiddenField.setAttribute("name", key);
+                    hiddenField.setAttribute("value", params[key]);
+                    form.appendChild(hiddenField);
+                 }
+            }
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
 </head>
 <body>
 <div class="ui fixed inverted menu">
     <div class="ui container">
-        <div href="#" class="header item">
+        <a href="#" class="header item">
             PiNVR
-        </div>
+        </a>
     </div>
 </div>
 <div class="ui header container">
@@ -23,35 +38,26 @@
 </div>
 <div class="ui main container">
     <form class="ui error form" method="post" action="{{ url_for('modify') }}">
-        <!--{% if error %}-->
-        <div class="ui error message">
-            <i class="close icon"></i>
-            <div class="header">
-                Error:
-            </div>
-            <p>
-                <!--{{ error }}-->
-            </p>
-        </div>
-        <!--{% endif %}-->
         <div class="field">
             <label>카메라 이름</label>
-            <input type="text" name="camera_name" placeholder="Cam">
+            <input type="text" name="camera_name" placeholder="Cam" value="{{ camera.camera_name }}">
         </div>
         <div class="field">
             <label>원본 RTSP 주소</label>
-            <input type="text" name="origin_url" placeholder="rtsp://localhost:8554/unicast">
+            <input type="text" name="origin_url" placeholder="rtsp://localhost:8554/unicast" value="{{ camera.origin_url }}">
         </div>
         <div class="field">
             <label>영상 저장 위치</label>
-            <input type="text" name="root_dir" placeholder="/home/pi/Videos">
+            <input type="text" name="root_dir" placeholder="/home/pi/Videos" value="{{ camera.root_dir }}">
         </div>
+        <input type="hidden" name="server_port" value="{{ camera.server_port }}">
+        <input type="hidden" name="type" value="modify_nvs">
         <!--<div class="field">-->
         <!--<label>스케쥴</label>-->
         <!--&lt;!&ndash;<input type="text" name="last-name" placeholder="Last Name">&ndash;&gt;-->
         <!--</div>-->
         <button class="ui floated primary button" type="submit">저장</button>
-        <button class="ui floated negative button" onclick="location.href='/status'">취소</button>
+        <button class="ui floated negative button" type="button" onclick="location.href='/status'">취소</button>
     </form>
 </div>
 </body>

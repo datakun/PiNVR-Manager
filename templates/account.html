@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PiNVR</title>
+    <link rel="stylesheet" type="text/css" href="/static/bower_components/semantic/dist/semantic.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+    <script src="/static/bower_components/semantic/dist/semantic.min.js"></script>
+    <script src="/static/js/script.js"></script>
+</head>
+<body>
+<div class="ui middle aligned center aligned grid">
+    <div class="column">
+        <h2 class="ui blue header">
+            <div class="content">
+                PiNVR 관리자 비밀변호 변경
+            </div>
+        </h2>
+        <form class="ui large form" method="post" action="/account">
+            <div class="ui stacked segment">
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="lock icon"></i>
+                        <input type="password" name="password" placeholder="현재 비밀번호">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="lock icon"></i>
+                        <input type="password" name="new_password" placeholder="새 비밀번호">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="lock icon"></i>
+                        <input type="password" name="new_password_confirm" placeholder="새 비밀번호 확인">
+                    </div>
+                </div>
+                <div class="two fields">
+                    <button class="ui fluid large floated primary button" type="submit">변경</button>
+                    <button class="ui fluid large floated positive button" type="button" onclick="location.href='/'">취소</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

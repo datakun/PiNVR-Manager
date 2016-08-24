@@ -3,20 +3,26 @@
 <head>
     <title>PiNVR</title>
     <link rel="stylesheet" type="text/css" href="/static/bower_components/semantic/dist/semantic.min.css">
-    <style type="text/css">
-        body > .grid {
-          height: 100%;
-        }
-        .image {
-          margin-top: -100px;
-        }
-        .column {
-          max-width: 450px;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
     <script src="/static/bower_components/semantic/dist/semantic.min.js"></script>
+    <script src="/static/js/script.js"></script>
     <script>
-
+        function post(path, params) {
+            var form = document.createElement("form");
+            form.setAttribute("method", 'post');
+            form.setAttribute("action", path);
+            for(var key in params) {
+                if(params.hasOwnProperty(key)) {
+                    var hiddenField = document.createElement("input");
+                    hiddenField.setAttribute("type", "hidden");
+                    hiddenField.setAttribute("name", key);
+                    hiddenField.setAttribute("value", params[key]);
+                    form.appendChild(hiddenField);
+                 }
+            }
+            document.body.appendChild(form);
+            form.submit();
+        }
     </script>
 </head>
 <body>
@@ -55,7 +61,7 @@
                 </div>
                 <div class="two fields">
                     <button class="ui fluid large floated primary button" type="submit">로그인</button>
-                    <button class="ui fluid large floated positive button" onclick="">비밀번호 변경</button>
+                    <button class="ui fluid large floated positive button" type="button" onclick="location.href='/account'">비밀번호 변경</button>
                 </div>
             </div>
         </form>

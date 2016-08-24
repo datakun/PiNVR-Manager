@@ -233,7 +233,8 @@ class NVSThread(Thread):
                  + str(self.server_port) + ' -r ' + self.origin_url
 
         # 변수로 추출해야 함
-        cmd = '/home/pi/opt/PiNVR/pinvr' + params
+        # cmd = '/home/pi/opt/PiNVR/pinvr' + params
+        cmd = '/Users/datagoon/Desktop/pi/PiNVR/build-pinvs-Desktop_Qt_5_7_0_clang_64bit-Debug/pinvs' + params
         cmd_args = cmd.split()
 
         self.runnable = subprocess.Popen(cmd_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -242,33 +243,15 @@ class NVSThread(Thread):
 
         # call(cmd_args)
 
-    def cmd_change_camera_name(self, camera_name):
+    def cmd_change_camera_info(self, camera_name, root_dir, origin_url):
         if self.runnable is None:
             print 'runnable is None. Maybe subprocess is dead.'
         else:
             self.camera_name = camera_name
-            self.runnable.stdin.write('-hello ' + camera_name)
-
-    def cmd_change_root_dir(self, root_dir):
-        if self.runnable is None:
-            print 'runnable is None. Maybe subprocess is dead.'
-        else:
             self.root_dir = root_dir
-            self.runnable.stdin.write('-hello ' + root_dir)
-
-    def cmd_change_server_port(self, server_port):
-        if self.runnable is None:
-            print 'runnable is None. Maybe subprocess is dead.'
-        else:
-            self.server_port = server_port
-            self.runnable.stdin.write('-hello ' + str(server_port))
-
-    def cmd_change_origin_url(self, origin_url):
-        if self.runnable is None:
-            print 'runnable is None. Maybe subprocess is dead.'
-        else:
             self.origin_url = origin_url
-            self.runnable.stdin.write('-hello ' + origin_url)
+
+            self.runnable.stdin.write('-config-camera\t' + camera_name + "\t" + root_dir + "\t" + origin_url + '\n')
 
     def cmd_kill_nvs(self):
         if self.runnable is None:
@@ -330,6 +313,40 @@ def index():
     return render_template('login.html', error=error)
 
 
+@app.route('/account', methods=['GET', 'POST'])
+def account():
+    error = None
+
+    if request.method == 'POST':
+        _current_user = get_db_user('admin')
+
+        if _current_user is not None:
+            if _current_user.check_password(request.form['password']) is True:
+                new_password = request.form['new_password']
+                new_password_confirm = request.form['new_password_confirm']
+
+                if new_password == new_password_confirm:
+                    _db = connect_db()
+
+                    new_admin = User(username='admin', password=new_password)
+                    _cursor = _db.cursor()
+                    _cursor.executemany('update user_list set password=? where username=?',
+                                        [(new_admin.password, new_admin.username)])
+
+                    _cursor.close()
+                    disconnect_db(_db)
+                else:
+                    error = 'password incorrect.'
+
+                return render_template('login.html', error=error)
+            else:
+                error = 'invalid password.'
+        else:
+            error = 'invalid username.'
+
+    return render_template('account.html', error=error)
+
+
 @app.route('/status')
 def status():
     global nvs_list
@@ -356,14 +373,14 @@ def logout():
     return redirect('/')
 
 
-@app.route('/kill-all')
-def asdf():
-    global nvs_thread_list
-
-    for thread in nvs_thread_list:
-        thread.cmd_kill_nvs()
-
-    return redirect('/')
+# @app.route('/kill-all')
+# def asdf():
+#     global nvs_thread_list
+#
+#     for thread in nvs_thread_list:
+#         thread.cmd_kill_nvs()
+#
+#     return redirect('/')
 
 
 @app.route('/add', methods=['GET', 'POST'])
@@ -383,6 +400,9 @@ def add():
             origin_url = request.form['origin_url']
             server_port = 8000
 
+            if root_dir == "" or camera_name == "" or origin_url == "":
+                return redirect(url_for('status', error=error))
+
             _camera_list = get_db_camera_list(owner)
 
             while True:
@@ -396,7 +416,7 @@ def add():
                     break
 
             if error is None:
-                run_camera(root_dir, camera_name, origin_url, server_port)
+                run_camera(root_dir=root_dir, camera_name=camera_name, origin_url=origin_url, server_port=server_port)
 
                 _camera_info = NVSInfo(camera_name, root_dir, server_port, origin_url, owner, True)
                 insert_db_camera(_camera_info)
@@ -443,41 +463,11 @@ def modify():
             # process 갱신
             for item in nvs_thread_list:
                 if str(item.server_port) == server_port:
-
                     update_process_status()
 
-                    item.cmd_change_camera_name(camera_name)
-                    item.cmd_change_root_dir(root_dir)
-                    item.cmd_change_origin_url(origin_url)
+                    item.cmd_change_camera_info(camera_name, root_dir, origin_url)
 
                     break
-    else:
-        return redirect('/')
-
-    return redirect(url_for('status', error=error))
-
-
-@app.route('/enable', methods=['POST'])
-def enable():
-    global nvs_list, nvs_watcher
-
-    owner = get_current_username()
-
-    error = None
-
-    if owner is not None:
-        server_port = request.form['server_port']
-
-        _camera = get_db_camera(server_port)
-        run_camera(_camera.camera_name, _camera.root_dir, _camera.origin_url, _camera.server_port)
-
-        db_enable_camera(server_port, True)
-
-        nvs_list = get_db_camera_list(owner)
-
-        update_process_status()
-
-        print 'nvs enabled: ' + str(_camera.server_port), owner
     else:
         return redirect('/')
 

@@ -7,10 +7,6 @@
     .header.container {
         margin-top: 5em;
     }
-
-
-
-
     </style>
     <script src="/static/bower_components/semantic/dist/semantic.min.js"></script>
     <script>
@@ -20,25 +16,18 @@
             var form = document.createElement("form");
             form.setAttribute("method", 'post');
             form.setAttribute("action", path);
-
             for(var key in params) {
                 if(params.hasOwnProperty(key)) {
                     var hiddenField = document.createElement("input");
                     hiddenField.setAttribute("type", "hidden");
                     hiddenField.setAttribute("name", key);
                     hiddenField.setAttribute("value", params[key]);
-
                     form.appendChild(hiddenField);
                  }
             }
-
             document.body.appendChild(form);
             form.submit();
         }
-
-
-
-
     </script>
 </head>
 <body>
@@ -58,17 +47,6 @@
     <h1>PiNVR 상태</h1>
 </div>
 <div class="ui main container">
-    {% if error %}
-    <div class="ui negative message transition hidden">
-        <i class="close icon"></i>
-        <div class="header">
-            Error:
-        </div>
-        <p>
-            {{ error }}
-        </p>
-    </div>
-    {% endif %}
     <table class="ui blue selectable table">
         <thead class="full-width">
         <tr>
@@ -96,10 +74,10 @@
                 <div class="ui toggle checkbox">
                     {% if camera.enabled %}
                     <input type="checkbox" checked
-                           onclick="post('/disable', {server_port: '{{ camera.server_port }}'});">
+                           onclick="post('/disable', {'server_port': '{{ camera.server_port }}'});">
                     {% else %}
                     <input type="checkbox"
-                           onclick="post('/enable', {server_port: '{{ camera.server_port }}'});">
+                           onclick="post('/enable', {'server_port': '{{ camera.server_port }}'});">
                     {% endif %}
                     <label></label>
                 </div>
